@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Image Steganography</title>
+    </head>
+    <body onload="hideImage()">
+        Cover:<input type="file" id="cover"/>
+        Secret:<input type="file" id="secret"/>
+        Bits:
+        <select id="bits">
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+        </select>
+
+        <br>
+        <br>
+
+        <canvas style="border: solid 1px black" width="300" height="300" id="covercanvas"></canvas>
+        <canvas style="border: solid 1px black" width="300" height="300" id="secretcanvas"></canvas>
+        <canvas style="border: solid 1px black" width="300" height="300" id="outputcanvas"></canvas>
+
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+        <script type="text/javascript" src="hideimage.js"></script>
+    </body>
+</html>
