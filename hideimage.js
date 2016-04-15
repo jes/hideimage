@@ -1,26 +1,60 @@
 $('#cover').change(function(e) {
-    drawImage('cover');
+    loadImage('cover');
 });
 
 $('#secret').change(function(e) {
-    drawImage('secret');
+    loadImage('secret');
 });
 
 $('#bits').change(function(e) {
-    doHideImage();
+    makeHideImagePreview();
+});
+
+$('#downloadbutton').click(function(e) {
+    if (!loaded_img["cover"] || !loaded_img["secret"]) {
+        alert("Nope.");
+        return;
+    }
+
+    var cover = document.createElement('canvas');
+    var secret = document.createElement('canvas');
+
+    cover.width = loaded_img["cover"].width;
+    cover.height = loaded_img["cover"].height;
+    secret.width = loaded_img["secret"].width;
+    secret.height = loaded_img["secret"].height;
+
+    var coverctx = cover.getContext('2d');
+    var secretctx = secret.getContext('2d');
+
+    coverctx.clearRect(0, 0, cover.width, cover.height);
+    coverctx.drawImage(loaded_img["cover"], 0, 0);
+    secretctx.clearRect(0, 0, secret.width, secret.height);
+    secretctx.drawImage(loaded_img["secret"], 0, 0);
+
+    var coverdata = coverctx.getImageData(0, 0, cover.width, cover.height);
+    var secretdata = secretctx.getImageData(0, 0, secret.width, secret.height);
+    doHideImage(coverdata, secretdata, $('#bits')[0].value);
+    coverctx.putImageData(coverdata, 0, 0);
+    window.location = cover.toDataURL();
 });
 
 var factor = {
-    "cover": 1,
-    "secret": 1,
+    "cover": 0.001,
+    "secret": 0.001,
 };
+var k = 0.001;
 var opposite = {
     "cover": "secret",
     "secret": "cover",
 };
 
-function drawImage(which, recursed) {
-    var input = $('#' + which)[0];
+var loaded_img = {
+    "cover": undefined,
+    "secret": undefined,
+};
+
+function drawImagePreview(which, recursed) {
     var id = '#' + which + 'canvas';
 
     var ctx = $(id)[0].getContext('2d');
@@ -28,67 +62,84 @@ function drawImage(which, recursed) {
     var targetw = $(id)[0].width;
     var targeth = $(id)[0].height;
 
-    var img = new Image;
-    img.onload = function() {
-        var imgw = img.width;
-        var imgh = img.height;
-        var wfactor = img.width / targetw;
-        var hfactor = img.height / targeth;
-        factor[which] = wfactor;
-        if (hfactor > factor)
-            factor[which] = hfactor;
+    var img = loaded_img[which];
+    var imgw = img.width;
+    var imgh = img.height;
+    var wfactor = img.width / targetw;
+    var hfactor = img.height / targeth;
+    factor[which] = wfactor;
+    if (hfactor > factor[which])
+        factor[which] = hfactor;
 
-        var k = factor[which];
-        if (factor[opposite[which]] > factor[which])
-            k = factor[opposite[which]];
+    k = factor[which];
+    if (factor[opposite[which]] > factor[which])
+        k = factor[opposite[which]];
 
-        // draw the image to the canvas
-        ctx.clearRect(0, 0, 300, 300);
-        ctx.drawImage(img, 0, 0, imgw / k, imgh / k);
+    // draw the image to the canvas
+    ctx.clearRect(0, 0, targetw, targeth);
+    console.log("ctx.drawImage(" + which + ", " + (imgw/k) + ", " + (imgh/k) + "; k=" + k);
+    ctx.drawImage(img, 0, 0, imgw / k, imgh / k);
 
+    if (loaded_img[opposite[which]]) {
         if (!recursed) {
-            drawImage(opposite[which], 1);
+            drawImagePreview(opposite[which], 1);
         } else {
-            doHideImage();
+            makeHideImagePreview();
         }
     }
+}
+
+function makeHideImagePreview() {
+    var coverctx = $('#covercanvas')[0].getContext('2d');
+    var secretctx = $('#secretcanvas')[0].getContext('2d');
+    var coverdata = coverctx.getImageData(0, 0, loaded_img["cover"].width/k, loaded_img["cover"].height/k);
+    var secretdata = secretctx.getImageData(0, 0, loaded_img["secret"].width/k, loaded_img["secret"].height/k);
+
+    doHideImage(coverdata, secretdata, $('#bits')[0].value);
+
+    var outputctx = $('#outputcanvas')[0].getContext('2d');
+    outputctx.putImageData(coverdata, 0, 0);
+}
+
+
+function loadImage(which, recursed) {
+    var input = $('#' + which)[0];
+
+    loaded_img[which] = undefined;
+
+    var img = new Image;
+    img.onload = function() {
+        loaded_img[which] = img;
+        drawImagePreview(which, recursed);
+    }
     img.src = URL.createObjectURL(input.files[0]);
-    return ctx;
 }
 
 function hideImage() {
-    drawImage('cover');
+    loadImage('cover');
+    loadImage('secret');
 }
 
-function doHideImage() {
-    // TODO: load cover+secret again, from their file inputs, to get full-dimension images
-    var cover = $('#covercanvas')[0];
-    var coverctx = $('#covercanvas')[0].getContext('2d');
-    var secret = $('#secretcanvas')[0];
-    var secretctx = $('#secretcanvas')[0].getContext('2d');
-    var output = $('#outputcanvas')[0];
-    var outputctx = output.getContext('2d');
+// hides secretdata into coverdata
+function doHideImage(coverdata, secretdata, bits) {
+    var coverpix = coverdata.data;
+    var secretpix = secretdata.data;
 
-    var coverpixdata = coverctx.getImageData(0, 0, cover.width, cover.height);
-    var secretpixdata = secretctx.getImageData(0, 0, secret.width, secret.height);
-    var coverpix = coverpixdata.data;
-    var secretpix = secretpixdata.data;
+    var minw = coverdata.width;
+    var minh = coverdata.height;
+    if (secretdata.width < minw)
+        minw = secretdata.width;
+    if (secretdata.height < minh)
+        minh = secretdata.height;
 
-    var minw = cover.width;
-    var minh = cover.height;
-    if (secret.width < minw)
-        minw = secret.width;
-    if (secret.height < minh)
-        minh = secret.height;
-
-    var bits = $('#bits')[0].value;
+    console.log("minw = " + minw); console.log("minh = " + minh);
 
     for (var y = 0; y < minh; y++) {
         for (var x = 0; x < minw; x++) {
-            var coveridx = 4 * (y*cover.width + x);
-            var secretidx = 4 * (y*secret.width + x);
+            var coveridx = 4 * (y*coverdata.width + x);
+            var secretidx = 4 * (y*secretdata.width + x);
 
-            for (var chan = 0; chan < 4; chan++) {
+            for (var chan = 0; chan < 3; chan++) {
                 var mask = (0xff >>> bits) << bits;
                 var coverc = coverpix[coveridx + chan];
                 var secretc = secretpix[secretidx + chan];
@@ -97,7 +148,6 @@ function doHideImage() {
         }
     }
 
-    outputctx.putImageData(coverpixdata, 0, 0);
     // TODO: how to download the full-dimension output?
     // TODO: show preview of what extracted image will look like
 }
