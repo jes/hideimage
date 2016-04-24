@@ -10,33 +10,49 @@ $('#bits').change(function(e) {
     makeHideImagePreview();
 });
 
+var pixpersec = 0;
+
 $('#downloadbutton').click(function(e) {
     if (!loaded_img["cover"] || !loaded_img["secret"]) {
         alert("Nope.");
         return;
     }
 
-    var cover = document.createElement('canvas');
-    var secret = document.createElement('canvas');
+    $('#loadingspan').text("Processing...");
+    setTimeout(function() {
+        var cover = document.createElement('canvas');
+        var secret = document.createElement('canvas');
 
-    cover.width = loaded_img["cover"].width;
-    cover.height = loaded_img["cover"].height;
-    secret.width = loaded_img["secret"].width;
-    secret.height = loaded_img["secret"].height;
+        cover.width = loaded_img["cover"].width;
+        cover.height = loaded_img["cover"].height;
+        secret.width = loaded_img["secret"].width;
+        secret.height = loaded_img["secret"].height;
 
-    var coverctx = cover.getContext('2d');
-    var secretctx = secret.getContext('2d');
+        var coverctx = cover.getContext('2d');
+        var secretctx = secret.getContext('2d');
 
-    coverctx.clearRect(0, 0, cover.width, cover.height);
-    coverctx.drawImage(loaded_img["cover"], 0, 0);
-    secretctx.clearRect(0, 0, secret.width, secret.height);
-    secretctx.drawImage(loaded_img["secret"], 0, 0);
+        coverctx.clearRect(0, 0, cover.width, cover.height);
+        coverctx.drawImage(loaded_img["cover"], 0, 0);
+        secretctx.clearRect(0, 0, secret.width, secret.height);
+        secretctx.drawImage(loaded_img["secret"], 0, 0);
 
-    var coverdata = coverctx.getImageData(0, 0, cover.width, cover.height);
-    var secretdata = secretctx.getImageData(0, 0, secret.width, secret.height);
-    doHideImage(coverdata, secretdata, $('#bits')[0].value);
-    coverctx.putImageData(coverdata, 0, 0);
-    window.location = cover.toDataURL();
+        var coverdata = coverctx.getImageData(0, 0, cover.width, cover.height);
+        var secretdata = secretctx.getImageData(0, 0, secret.width, secret.height);
+        var start = window.performance.now();
+        doHideImage(coverdata, secretdata, $('#bits')[0].value);
+        var end = window.performance.now();
+        console.log("doHideImage took " + ((end - start) / 1000) + " secs");
+
+        $('#loadingspan').text("Displaying...");
+        setTimeout(function() {
+            coverctx.putImageData(coverdata, 0, 0);
+
+            $('#viewimg').attr('src', cover.toDataURL());
+            $('#viewimg').show();
+
+            $('#loadingspan').text("Now right click, save image");
+        }, 20);
+    }, 20);
 });
 
 var factor = {
@@ -56,6 +72,8 @@ var loaded_img = {
 
 function drawImagePreview(which, recursed) {
     var id = '#' + which + 'canvas';
+
+    $('#viewimg').hide();
 
     var ctx = $(id)[0].getContext('2d');
 
@@ -97,6 +115,9 @@ function makeHideImagePreview() {
 
     doHideImage(coverdata, secretdata, $('#bits')[0].value);
 
+    var secs = 2 * (loaded_img["cover"].width * loaded_img["cover"].height) / pixpersec;
+    $('#loadingspan').text("Est. " + secs.toFixed(1)  + " seconds.");
+
     var outputctx = $('#outputcanvas')[0].getContext('2d');
     outputctx.putImageData(coverdata, 0, 0);
 }
@@ -134,20 +155,35 @@ function doHideImage(coverdata, secretdata, bits) {
 
     console.log("minw = " + minw); console.log("minh = " + minh);
 
-    for (var y = 0; y < minh; y++) {
-        for (var x = 0; x < minw; x++) {
-            var coveridx = 4 * (y*coverdata.width + x);
-            var secretidx = 4 * (y*secretdata.width + x);
+    var mask = (0xff >>> bits) << bits;
 
-            for (var chan = 0; chan < 3; chan++) {
-                var mask = (0xff >>> bits) << bits;
-                var coverc = coverpix[coveridx + chan];
-                var secretc = secretpix[secretidx + chan];
-                coverpix[coveridx + chan] = (coverc & mask) + (secretc >>> (8 - bits));
-            }
+    var start = window.performance.now();
+
+    for (var y = 0; y < minh; y++) {
+        var covery = y*coverdata.width;
+        var secrety = y*secretdata.width;
+        for (var x = 0; x < minw; x++) {
+            var coveridx = 4 * (covery + x);
+            var secretidx = 4 * (secrety + x);
+
+            // red
+            coverpix[coveridx] = (coverpix[coveridx] & mask) + (secretpix[secretidx] >>> (8 - bits));
+
+            // green
+            ++coveridx;
+            coverpix[coveridx] = (coverpix[coveridx] & mask) + (secretpix[++secretidx] >>> (8 - bits));
+
+            // blue
+            ++coveridx;
+            coverpix[coveridx] = (coverpix[coveridx] & mask) + (secretpix[++secretidx] >>> (8 - bits));
         }
     }
+
+    var end = window.performance.now();
+    pixpersec = (minw * minh) / ((end - start) / 1000);
 
     // TODO: how to download the full-dimension output?
     // TODO: show preview of what extracted image will look like
 }
+
+$('#viewimg').hide();
