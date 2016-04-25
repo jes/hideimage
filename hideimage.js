@@ -74,6 +74,9 @@ $('#downloadbutton').click(function(e) {
     }, 20);
 });
 
+$('#downloadbutton2').click(function(e) {
+});
+
 function downloadCanvas(link, canvas, filename) {
     link.href = canvas.toDataURL();
     link.download=filename;
@@ -153,6 +156,7 @@ function makeHideImagePreview() {
     doHideImage(coverdata, secretdata, $('#bits')[0].value);
 
     var outputctx = $('#outputcanvas')[0].getContext('2d');
+    outputctx.clearRect(0, 0, 300, 300);
     outputctx.putImageData(coverdata, 0, 0);
 }
 
