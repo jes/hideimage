@@ -35,6 +35,11 @@ $('#stegimage').change(function(e) {
     loadImage('stegimage', drawUnhideImagePreview);
 });
 
+$('#stegimage-preset').change(function(e) {
+    changed = true;
+    loadPresetImage('stegimage', drawUnhideImagePreview);
+});
+
 $('#bits2').slider({
     min: 1,
     max: 7,
