@@ -1,11 +1,22 @@
 $('#cover').change(function(e) {
     changed = true;
     loadImage('cover', drawImagePreview);
+    $('#cover-preset').val('na');
+});
+
+$('#cover-preset').change(function(e) {
+    changed = true;
+    loadPresetImage('cover', drawImagePreview);
 });
 
 $('#secret').change(function(e) {
     changed = true;
     loadImage('secret', drawImagePreview);
+});
+
+$('#secret-preset').change(function(e) {
+    changed = true;
+    loadPresetImage('secret', drawImagePreview);
 });
 
 $('#bits').slider({
@@ -288,6 +299,17 @@ function loadImage(which, cb) {
         cb(which);
     }
     img.src = URL.createObjectURL(input.files[0]);
+}
+
+function loadPresetImage(which, cb) {
+    loaded_img[which] = undefined;
+
+    var img = new Image;
+    img.onload = function() {
+        loaded_img[which] = img;
+        cb(which);
+    }
+    img.src = $('#'+which+'-preset').val() + '.png';
 }
 
 function hideImage() {

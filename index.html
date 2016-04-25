@@ -30,9 +30,9 @@
                             <h4 class="modal-title" id="myModalLabel">How it works</h4>
                         </div>
                         <div class="modal-body">
-                            <p>Each channel (red, green, and blue) of each pixel in an image is represented by an 8-bit value. To hide the secret image
+                            <p>Each channel (red, green, blue) of each pixel in an image is represented by an 8-bit value. To hide the secret image
                             inside the cover image, we replace the <b>n</b> least significant bits of the cover pixel value with the same number of most significant
-                            bits from the secret image. Example, using 3 hidden bits:</p>
+                            bits from the secret pixel value. Example, using 3 hidden bits:</p>
                             <p>Cover pixel: (167, 93, 27) == (<b>10100</b>111, <b>01011</b>101, <b>00011</b>011) <span style="background-color:rgb(167,93,27)">&nbsp;&nbsp;&nbsp;</span><br>
                             Secret pixel: (67, 200, 105) == (<b>010</b>00011, <b>110</b>01000, <b>011</b>01001) <span style="background-color:rgb(67,200,105)">&nbsp;&nbsp;&nbsp;</span><br>
                             Output pixel: (162, 94, 27) == (10100<b>010</b>, 01011<b>110</b>, 00011<b>011</b>) <span style="background-color:rgb(162,94,27)">&nbsp;&nbsp;&nbsp;</span>
@@ -41,6 +41,8 @@
                             to extract an approximation of the secret pixel value, which gets padded with 0 to fill in the missing bits, so comes out to
                             (64, 192, 96) ==
                             (<b>010</b>00000, <b>110</b>00000, <b>011</b>00000) <span style="background-color:rgb(64,192,96)">&nbsp;&nbsp;&nbsp;</span>.</p>
+                            <p>Using a larger number of hidden bits results in a better quality hidden image, but makes it easier to tell that the hidden
+                            image is there.</p>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -83,14 +85,30 @@
             <div id="hiderow" class="row">
                 <div class="col-md-4">
                     <div style="height: 100px">
-                        Cover image:<input type="file" id="cover"/>
+                        Cover image:<input type="file" id="cover"/><br>
+                        Preset:
+                        <select id="cover-preset">
+                            <option value="na">N/A</option>
+                            <option value="wikipedia-tree">Wikipedia Tree</option>
+                            <option value="wikipedia-cat">Wikipedia Cat</option>
+                            <option value="jes">James Stanley's face</option>
+                            <option value="walrus">Walrus</option>
+                        </select>
                     </div>
                     <canvas style="border: solid 1px black" width="300" height="300" id="covercanvas"></canvas>
                 </div>
 
                 <div class="col-md-4">
                     <div style="height: 100px">
-                        Secret image:<input type="file" id="secret"/>
+                        Secret image:<input type="file" id="secret"/><br>
+                        Preset:
+                        <select id="secret-preset">
+                            <option value="na">N/A</option>
+                            <option value="wikipedia-tree">Wikipedia Tree</option>
+                            <option value="wikipedia-cat">Wikipedia Cat</option>
+                            <option value="jes">James Stanley's face</option>
+                            <option value="walrus">Walrus</option>
+                        </select>
                     </div>
                     <canvas style="border: solid 1px black" width="300" height="300" id="secretcanvas"></canvas>
                 </div>
@@ -110,7 +128,15 @@
             <div id="unhiderow" class="row">
                 <div class="col-md-4">
                     <div style="height: 100px">
-                        Image:<input type="file" id="stegimage"/>
+                        Image:<input type="file" id="stegimage"/><br>
+                        Preset:
+                        <select id="stegimage-preset">
+                            <option value="na">N/A</option>
+                            <option value="wikipedia-tree">Wikipedia Tree</option>
+                            <option value="wikipedia-cat">Wikipedia Cat</option>
+                            <option value="jes">James Stanley's face</option>
+                            <option value="walrus">Walrus</option>
+                        </select>
                     </div>
                     <canvas style="border: solid 1px black" width="300" height="300" id="stegcanvas"></canvas>
                 </div>
