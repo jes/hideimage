@@ -14,7 +14,8 @@ $('#bits').slider({
     slide: function(e, ui) {
         $('#bitsdisplay').text(ui.value);
         changed = true;
-        makeHideImagePreview(ui.value);
+        if (loaded_img["cover"] && loaded_img["secret"])
+            makeHideImagePreview(ui.value);
     },
 });
 
@@ -34,7 +35,8 @@ $('#bits2').slider({
         $('#unhidethrob').show();
         setTimeout(function() {
             changed = true;
-            makeUnhideImagePreview(ui.value);
+            if (loaded_img["stegimage"])
+                makeUnhideImagePreview(ui.value);
         }, 20);
     },
 });

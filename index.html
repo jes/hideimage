@@ -7,9 +7,70 @@
     </head>
     <body onload="hideImage()">
         <div class="container">
+            <div style="float:left">
             <h1>Image Steganography</h1>
+            </div>
 
-            <div class="row">
+            <div style="float: left; margin-top: 35px">
+            <a style="margin-left: 50px" href="#" data-toggle="modal" data-target="#infomodal">How it works</a>
+            <a style="margin-left: 50px" href="#" data-toggle="modal" data-target="#aboutmodal">About</a>
+            </div>
+
+            <div style="clear:both"></div>
+            <hr>
+
+            <p>This is a tool to steganographically hide images inside the lower "bits" of other images.</p>
+            <p>Select either "Hide image" or "Unhide image".</p>
+
+            <div class="modal" id="infomodal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">How it works</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p>Each channel (red, green, and blue) of each pixel in an image is represented by an 8-bit value. To hide the secret image
+                            inside the cover image, we replace the <b>n</b> least significant bits of the cover pixel value with the same number of most significant
+                            bits from the secret image. Example, using 3 hidden bits:</p>
+                            <p>Cover pixel: (167, 93, 27) == (<b>10100</b>111, <b>01011</b>101, <b>00011</b>011) <span style="background-color:rgb(167,93,27)">&nbsp;&nbsp;&nbsp;</span><br>
+                            Secret pixel: (67, 200, 105) == (<b>010</b>00011, <b>110</b>01000, <b>011</b>01001) <span style="background-color:rgb(67,200,105)">&nbsp;&nbsp;&nbsp;</span><br>
+                            Output pixel: (162, 94, 27) == (10100<b>010</b>, 01011<b>110</b>, 00011<b>011</b>) <span style="background-color:rgb(162,94,27)">&nbsp;&nbsp;&nbsp;</span>
+                            </p>
+                            <p>The output colour is almost indistinguishable from the cover colour, but now contains information
+                            to extract an approximation of the secret pixel value, which gets padded with 0 to fill in the missing bits, so comes out to
+                            (64, 192, 96) ==
+                            (<b>010</b>00000, <b>110</b>00000, <b>011</b>00000) <span style="background-color:rgb(64,192,96)">&nbsp;&nbsp;&nbsp;</span>.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal" id="aboutmodal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">About</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p>This is a project by James Stanley. You can learn more about me <a href="http://incoherency.co.uk/">on my website</a>.</p>
+                            <p>You can learn more about Steganography <a href="https://en.wikipedia.org/wiki/Steganography">on Wikipedia</a>.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            <div class="row" style="padding-bottom: 20px">
                 <div class="col-md-12">
                     <div class="btn-group">
                         <button class="btn btn-primary" id="hide-switch">Hide image</button>
