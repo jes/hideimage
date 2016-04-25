@@ -1,22 +1,33 @@
 $('#cover').change(function(e) {
+    changed = true;
     loadImage('cover');
 });
 
 $('#secret').change(function(e) {
+    changed = true;
     loadImage('secret');
 });
 
 $('#bits').change(function(e) {
+    changed = true;
     makeHideImagePreview();
 });
 
 var pixpersec = 0;
+var changed = true;
 
 $('#downloadbutton').click(function(e) {
     if (!loaded_img["cover"] || !loaded_img["secret"]) {
         alert("Nope.");
         return;
     }
+
+    $('#fullimgmodal').modal('show');
+
+    if(!changed)
+        return;
+
+    $('#viewimg').hide();
 
     $('#loadingspan').text("Processing...");
     setTimeout(function() {
@@ -46,14 +57,20 @@ $('#downloadbutton').click(function(e) {
         $('#loadingspan').text("Displaying...");
         setTimeout(function() {
             coverctx.putImageData(coverdata, 0, 0);
+            changed = false;
 
             $('#viewimg').attr('src', cover.toDataURL());
             $('#viewimg').show();
 
-            $('#loadingspan').text("Now right click, save image");
+            $('#loadingspan').text("Now right click and save the image");
         }, 20);
     }, 20);
 });
+
+function downloadCanvas(link, canvas, filename) {
+    link.href = canvas.toDataURL();
+    link.download=filename;
+}
 
 var factor = {
     "cover": 0.001,
@@ -72,8 +89,6 @@ var loaded_img = {
 
 function drawImagePreview(which, recursed) {
     var id = '#' + which + 'canvas';
-
-    $('#viewimg').hide();
 
     var ctx = $(id)[0].getContext('2d');
 
@@ -185,5 +200,3 @@ function doHideImage(coverdata, secretdata, bits) {
     // TODO: how to download the full-dimension output?
     // TODO: show preview of what extracted image will look like
 }
-
-$('#viewimg').hide();
