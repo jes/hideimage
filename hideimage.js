@@ -1,11 +1,11 @@
 $('#cover').change(function(e) {
     changed = true;
-    loadImage('cover');
+    loadImage('cover', drawImagePreview);
 });
 
 $('#secret').change(function(e) {
     changed = true;
-    loadImage('secret');
+    loadImage('secret', drawImagePreview);
 });
 
 $('#bits').change(function(e) {
@@ -13,8 +13,19 @@ $('#bits').change(function(e) {
     makeHideImagePreview();
 });
 
+$('#stegimage').change(function(e) {
+    unhidechanged = true;
+    loadImage('stegimage', drawUnhideImagePreview);
+});
+
+$('#bits2').change(function(e) {
+    unhidechanged = true;
+    makeUnhideImagePreview();
+});
+
 var pixpersec = 0;
 var changed = true;
+var unhidechanged = true;
 
 $('#downloadbutton').click(function(e) {
     if (!loaded_img["cover"] || !loaded_img["secret"]) {
@@ -122,6 +133,22 @@ function drawImagePreview(which, recursed) {
     }
 }
 
+function drawUnhideImagePreview() {
+    var ctx = $('#stegcanvas')[0].getContext('2d');
+
+    var imgw = loaded_img["stegimage"].width;
+    var imgh = loaded_img["stegimage"].height;
+
+    var k = imgw / 300;
+    if ((imgh / 300) > k)
+        k = imgh / 300;
+
+    ctx.clearRect(0, 0, 300, 300);
+    ctx.drawImage(loaded_img["stegimage"], 0, 0, imgw / k, imgh / k);
+
+    makeUnhideImagePreview();
+}
+
 function makeHideImagePreview() {
     var coverctx = $('#covercanvas')[0].getContext('2d');
     var secretctx = $('#secretcanvas')[0].getContext('2d');
@@ -137,8 +164,38 @@ function makeHideImagePreview() {
     outputctx.putImageData(coverdata, 0, 0);
 }
 
+function makeUnhideImagePreview() {
+    var steg = document.createElement('canvas');
 
-function loadImage(which, recursed) {
+    var imgw = loaded_img["stegimage"].width;
+    var imgh = loaded_img["stegimage"].height;
+
+    steg.width = imgw;
+    steg.height = imgh;
+    var stegctx = steg.getContext('2d');
+    stegctx.drawImage(loaded_img["stegimage"], 0, 0, imgw, imgh);
+    var stegdata = stegctx.getImageData(0, 0, imgw, imgh);
+
+    // make a full size canvas and unhide image on it, then scale that down for display
+    // cache the result so that it can be downloaded quicker
+
+    doUnhideImage(stegdata, $('#bits2')[0].value);
+
+    var k = imgw / 300;
+    if ((imgh / 300) > k)
+        k = imgh / 300;
+
+    var outputctx = $('#hiddencanvas')[0].getContext('2d');
+    var img = new Image();
+    img.onload = function() {
+        outputctx.clearRect(0, 0, 300, 300);
+        outputctx.drawImage(img, 0, 0, imgw / k, imgh / k);
+    }
+    stegctx.putImageData(stegdata, 0, 0);
+    img.src = steg.toDataURL();
+}
+
+function loadImage(which, cb) {
     var input = $('#' + which)[0];
 
     loaded_img[which] = undefined;
@@ -146,14 +203,14 @@ function loadImage(which, recursed) {
     var img = new Image;
     img.onload = function() {
         loaded_img[which] = img;
-        drawImagePreview(which, recursed);
+        cb(which);
     }
     img.src = URL.createObjectURL(input.files[0]);
 }
 
 function hideImage() {
-    loadImage('cover');
-    loadImage('secret');
+    loadImage('cover', drawImagePreview);
+    loadImage('secret', drawImagePreview);
 }
 
 // hides secretdata into coverdata
@@ -196,7 +253,31 @@ function doHideImage(coverdata, secretdata, bits) {
 
     var end = window.performance.now();
     pixpersec = (minw * minh) / ((end - start) / 1000);
+}
 
-    // TODO: how to download the full-dimension output?
-    // TODO: show preview of what extracted image will look like
+function doUnhideImage(stegdata, bits) {
+    var stegpix = stegdata.data;
+
+    var w = stegdata.width;
+    var h = stegdata.height;
+
+    for (var y = 0; y < h; y++) {
+        var stegy = y*w;
+        for (var x = 0; x < w; x++) {
+            var stegidx = 4*(stegy + x);
+
+            // red
+            if(x==0 && y<6) console.log(stegpix[stegidx] + " ->");
+            stegpix[stegidx] = (stegpix[stegidx] << (8 - bits)) & 0xff;
+            if(x==0 && y<6) console.log(" -> " + stegpix[stegidx]);
+
+            // green
+            ++stegidx;
+            stegpix[stegidx] = (stegpix[stegidx] << (8 - bits)) & 0xff;
+
+            // blue
+            ++stegidx;
+            stegpix[stegidx] = (stegpix[stegidx] << (8 - bits)) & 0xff;
+        }
+    }
 }
