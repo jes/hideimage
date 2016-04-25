@@ -8,27 +8,73 @@ $('#secret').change(function(e) {
     loadImage('secret', drawImagePreview);
 });
 
-$('#bits').change(function(e) {
-    changed = true;
-    makeHideImagePreview();
+$('#bits').slider({
+    min: 1,
+    max: 7,
+    slide: function(e, ui) {
+        $('#bitsdisplay').text(ui.value);
+        changed = true;
+        makeHideImagePreview(ui.value);
+    },
 });
 
 $('#stegimage').change(function(e) {
-    unhidechanged = true;
+    changed = true;
     loadImage('stegimage', drawUnhideImagePreview);
 });
 
-$('#bits2').change(function(e) {
-    unhidechanged = true;
-    makeUnhideImagePreview();
+$('#bits2').slider({
+    min: 1,
+    max: 7,
+    slide: function(e, ui) {
+        $('#unhidebitsdisplay').text(ui.value + " (release to process)");
+    },
+    change: function(e, ui) {
+        $('#unhidebitsdisplay').text(ui.value);
+        $('#unhidethrob').show();
+        setTimeout(function() {
+            changed = true;
+            makeUnhideImagePreview(ui.value);
+        }, 20);
+    },
 });
 
+$('#unhiderow').hide();
+
+$('#hide-switch').click(hide_switch);
+$('#unhide-switch').click(unhide_switch);
+
+function hide_switch() {
+    $('#hiderow').show();
+    $('#unhiderow').hide();
+    $('#hide-switch').addClass('btn-primary');
+    $('#hide-switch').removeClass('btn-default');
+    $('#unhide-switch').addClass('btn-default');
+    $('#unhide-switch').removeClass('btn-primary');
+    if (window.location.hash)
+        window.location.hash = '';
+}
+
+function unhide_switch() {
+    $('#unhiderow').show();
+    $('#hiderow').hide();
+    $('#unhide-switch').addClass('btn-primary');
+    $('#unhide-switch').removeClass('btn-default');
+    $('#hide-switch').addClass('btn-default');
+    $('#hide-switch').removeClass('btn-primary');
+    window.location.hash = 'unhide';
+}
+
+if (window.location.hash == '#unhide')
+    unhide_switch();
+
 var changed = true;
-var unhidechanged = true;
+
+$('#downloadbutton').prop('disabled', true);
+$('#downloadbutton2').prop('disabled', true);
 
 $('#downloadbutton').click(function(e) {
     if (!loaded_img["cover"] || !loaded_img["secret"]) {
-        alert("Nope.");
         return;
     }
 
@@ -59,7 +105,7 @@ $('#downloadbutton').click(function(e) {
 
         var coverdata = coverctx.getImageData(0, 0, cover.width, cover.height);
         var secretdata = secretctx.getImageData(0, 0, secret.width, secret.height);
-        doHideImage(coverdata, secretdata, $('#bits')[0].value);
+        doHideImage(coverdata, secretdata, $('#bits').slider('value'));
 
         $('#loadingspan').text("Displaying...");
         setTimeout(function() {
@@ -76,42 +122,24 @@ $('#downloadbutton').click(function(e) {
 
 $('#downloadbutton2').click(function(e) {
     if (!loaded_img["stegimage"]) {
-        alert("Nope.");
         return;
     }
 
-    $('#unhidefullimgmodal').modal('show');
+    $('#fullimgmodal').modal('show');
 
     if(!changed)
         return;
 
-    $('#viewunhideimg').hide();
+    $('#viewimg').hide();
 
-    $('#unhideloadingspan').text("Processing...");
+    $('#loadingspan').text("Displaying...");
     setTimeout(function() {
-        var steg = document.createElement('canvas');
+        changed = false;
 
-        steg.width = loaded_img["stegimage"].width;
-        steg.height = loaded_img["stegimage"].height;
+        $('#viewimg').attr('src', stegdataurl);
+        $('#viewimg').show();
 
-        var stegctx = steg.getContext('2d');
-
-        stegctx.clearRect(0, 0, steg.width, steg.height);
-        stegctx.drawImage(loaded_img["stegimage"], 0, 0);
-
-        var stegdata = stegctx.getImageData(0, 0, steg.width, steg.height);
-        doUnhideImage(stegdata, $('#bits2')[0].value);
-
-        $('#unhideloadingspan').text("Displaying...");
-        setTimeout(function() {
-            stegctx.putImageData(stegdata, 0, 0);
-            changed = false;
-
-            $('#viewunhideimg').attr('src', steg.toDataURL());
-            $('#viewunhideimg').show();
-
-            $('#unhideloadingspan').text("Now right click and save the image");
-        }, 20);
+        $('#loadingspan').text("Now right click and save the image");
     }, 20);
 });
 
@@ -133,7 +161,10 @@ var opposite = {
 var loaded_img = {
     "cover": undefined,
     "secret": undefined,
+    "stegimage": undefined,
 };
+
+var stegdataurl;
 
 function drawImagePreview(which, recursed) {
     var id = '#' + which + 'canvas';
@@ -164,7 +195,7 @@ function drawImagePreview(which, recursed) {
         if (!recursed) {
             drawImagePreview(opposite[which], 1);
         } else {
-            makeHideImagePreview();
+            makeHideImagePreview($('#bits').slider('value'));
         }
     }
 }
@@ -185,48 +216,63 @@ function drawUnhideImagePreview() {
     makeUnhideImagePreview();
 }
 
-function makeHideImagePreview() {
-    var coverctx = $('#covercanvas')[0].getContext('2d');
-    var secretctx = $('#secretcanvas')[0].getContext('2d');
-    var coverdata = coverctx.getImageData(0, 0, loaded_img["cover"].width/k, loaded_img["cover"].height/k);
-    var secretdata = secretctx.getImageData(0, 0, loaded_img["secret"].width/k, loaded_img["secret"].height/k);
+function makeHideImagePreview(bits) {
+    $('#downloadbutton').prop('disabled', false);
+    var ctx = $('#outputcanvas')[0].getContext('2d');
+    ctx.clearRect(0, 0, 300, 300);
+    ctx.font = '15px sans-serif';
+    ctx.fillText("Processing...", 10, 30);
 
-    doHideImage(coverdata, secretdata, $('#bits')[0].value);
+    setTimeout(function() {
+        var coverctx = $('#covercanvas')[0].getContext('2d');
+        var coverdata = coverctx.getImageData(0, 0, loaded_img["cover"].width/k, loaded_img["cover"].height/k);
+        var secretctx = $('#secretcanvas')[0].getContext('2d');
+        var secretdata = secretctx.getImageData(0, 0, loaded_img["secret"].width/k, loaded_img["secret"].height/k);
 
-    var outputctx = $('#outputcanvas')[0].getContext('2d');
-    outputctx.clearRect(0, 0, 300, 300);
-    outputctx.putImageData(coverdata, 0, 0);
+        doHideImage(coverdata, secretdata, bits);
+
+        ctx.clearRect(0, 0, 300, 300);
+        ctx.putImageData(coverdata, 0, 0);
+    }, 20);
 }
 
 function makeUnhideImagePreview() {
-    var steg = document.createElement('canvas');
+    $('#downloadbutton2').prop('disabled', false);
+    var ctx = $('#hiddencanvas')[0].getContext('2d');
+    ctx.clearRect(0, 0, 300, 300);
+    ctx.font = '15px sans-serif';
+    ctx.fillText("Processing...", 10, 30);
 
-    var imgw = loaded_img["stegimage"].width;
-    var imgh = loaded_img["stegimage"].height;
+    setTimeout(function() {
+        var steg = document.createElement('canvas');
 
-    steg.width = imgw;
-    steg.height = imgh;
-    var stegctx = steg.getContext('2d');
-    stegctx.drawImage(loaded_img["stegimage"], 0, 0, imgw, imgh);
-    var stegdata = stegctx.getImageData(0, 0, imgw, imgh);
+        var imgw = loaded_img["stegimage"].width;
+        var imgh = loaded_img["stegimage"].height;
 
-    // make a full size canvas and unhide image on it, then scale that down for display
-    // cache the result so that it can be downloaded quicker
+        steg.width = imgw;
+        steg.height = imgh;
+        var stegctx = steg.getContext('2d');
+        stegctx.drawImage(loaded_img["stegimage"], 0, 0, imgw, imgh);
+        var stegdata = stegctx.getImageData(0, 0, imgw, imgh);
 
-    doUnhideImage(stegdata, $('#bits2')[0].value);
+        // make a full size canvas and unhide image on it, then scale that down for display
+        // cache the result so that it can be downloaded quicker
 
-    var k = imgw / 300;
-    if ((imgh / 300) > k)
-        k = imgh / 300;
+        doUnhideImage(stegdata, $('#bits2').slider('value'));
 
-    var outputctx = $('#hiddencanvas')[0].getContext('2d');
-    var img = new Image();
-    img.onload = function() {
-        outputctx.clearRect(0, 0, 300, 300);
-        outputctx.drawImage(img, 0, 0, imgw / k, imgh / k);
-    }
-    stegctx.putImageData(stegdata, 0, 0);
-    img.src = steg.toDataURL();
+        var k = imgw / 300;
+        if ((imgh / 300) > k)
+            k = imgh / 300;
+
+        var img = new Image();
+        img.onload = function() {
+            ctx.clearRect(0, 0, 300, 300);
+            ctx.drawImage(img, 0, 0, imgw / k, imgh / k);
+        }
+        stegctx.putImageData(stegdata, 0, 0);
+        stegdataurl = steg.toDataURL();
+        img.src = stegdataurl;
+    }, 20);
 }
 
 function loadImage(which, cb) {

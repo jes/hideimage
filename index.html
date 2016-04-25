@@ -2,92 +2,94 @@
 <html>
     <head>
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
         <title>Image Steganography</title>
     </head>
     <body onload="hideImage()">
-        Cover:<input type="file" id="cover"/>
-        Secret:<input type="file" id="secret"/>
-        Bits:
-        <select id="bits">
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
-            <option>6</option>
-            <option>7</option>
-        </select>
+        <div class="container">
+            <h1>Image Steganography</h1>
 
-        <br>
-        <br>
-
-        <canvas style="border: solid 1px black" width="300" height="300" id="covercanvas"></canvas>
-        <canvas style="border: solid 1px black" width="300" height="300" id="secretcanvas"></canvas>
-        <canvas style="border: solid 1px black" width="300" height="300" id="outputcanvas"></canvas>
-        <button id="downloadbutton">Download Full-size Image</button>
-
-        <hr>
-
-        Image:<input type="file" id="stegimage"/>
-        Bits:
-        <select id="bits2">
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
-            <option>6</option>
-            <option>7</option>
-        </select>
-
-        <br>
-        <br>
-
-        <canvas style="border: solid 1px black" width="300" height="300" id="stegcanvas"></canvas>
-        <canvas style="border: solid 1px black" width="300" height="300" id="hiddencanvas"></canvas>
-        <button id="downloadbutton2">Download Full-size Image</button>
-
-   
-
-        <div class="modal" id="fullimgmodal" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="myModalLabel">Save image</h4>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="hide-switch">Hide image</button>
+                        <button class="btn btn-default" id="unhide-switch">Unhide image</button>
                     </div>
-                    <div class="modal-body">
-                        <span id="loadingspan"></span>
-                        <img style="width: 100%" id="viewimg">
+                </div>
+                <!-- add another column here with a letterbox ad -->
+            </div>
+
+            <div id="hiderow" class="row">
+                <div class="col-md-4">
+                    <div style="height: 100px">
+                        Cover image:<input type="file" id="cover"/>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <canvas style="border: solid 1px black" width="300" height="300" id="covercanvas"></canvas>
+                </div>
+
+                <div class="col-md-4">
+                    <div style="height: 100px">
+                        Secret image:<input type="file" id="secret"/>
+                    </div>
+                    <canvas style="border: solid 1px black" width="300" height="300" id="secretcanvas"></canvas>
+                </div>
+
+                <div class="col-md-4">
+                    <div style="height: 100px">
+                        Hidden bits:
+                        <span id="bitsdisplay">1</span><div id="bits" style="margin-top: 10px; width: 300px"></div>
+                        <button class="btn btn-default" style="margin-top: 10px" id="downloadbutton">Download Full-size Image</button>
+                    </div>
+
+                    <canvas style="border: solid 1px black" width="300" height="300" id="outputcanvas"></canvas>
+                </div>
+            </div>
+
+
+            <div id="unhiderow" class="row">
+                <div class="col-md-4">
+                    <div style="height: 100px">
+                        Image:<input type="file" id="stegimage"/>
+                    </div>
+                    <canvas style="border: solid 1px black" width="300" height="300" id="stegcanvas"></canvas>
+                </div>
+
+                <div class="col-md-4">
+                    <div style="height: 100px">
+                        Hidden bits:
+                        <span id="unhidebitsdisplay">1</span><div id="bits2" style="margin-top: 10px; width: 300px"></div>
+                        <button class="btn btn-default" style="margin-top: 10px" id="downloadbutton2">Download Full-size Image</button>
+                    </div>
+
+                    <canvas style="border: solid 1px black" width="300" height="300" id="hiddencanvas"></canvas>
+
+                </div>
+            </div>
+
+       
+
+            <div class="modal" id="fullimgmodal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Save image</h4>
+                        </div>
+                        <div class="modal-body">
+                            <span id="loadingspan"></span><br>
+                            <img style="max-width: 100%" id="viewimg">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="modal" id="unhidefullimgmodal" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="myModalLabel">Save image</h4>
-                    </div>
-                    <div class="modal-body">
-                        <span id="unhideloadingspan"></span>
-                        <img style="width: 100%" id="viewunhideimg">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
 
 
         <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+        <script type="text/javascript" src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
         <script type="text/javascript" src="hideimage.js"></script>
     </body>
