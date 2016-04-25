@@ -75,6 +75,44 @@ $('#downloadbutton').click(function(e) {
 });
 
 $('#downloadbutton2').click(function(e) {
+    if (!loaded_img["stegimage"]) {
+        alert("Nope.");
+        return;
+    }
+
+    $('#unhidefullimgmodal').modal('show');
+
+    if(!changed)
+        return;
+
+    $('#viewunhideimg').hide();
+
+    $('#unhideloadingspan').text("Processing...");
+    setTimeout(function() {
+        var steg = document.createElement('canvas');
+
+        steg.width = loaded_img["stegimage"].width;
+        steg.height = loaded_img["stegimage"].height;
+
+        var stegctx = steg.getContext('2d');
+
+        stegctx.clearRect(0, 0, steg.width, steg.height);
+        stegctx.drawImage(loaded_img["stegimage"], 0, 0);
+
+        var stegdata = stegctx.getImageData(0, 0, steg.width, steg.height);
+        doUnhideImage(stegdata, $('#bits2')[0].value);
+
+        $('#unhideloadingspan').text("Displaying...");
+        setTimeout(function() {
+            stegctx.putImageData(stegdata, 0, 0);
+            changed = false;
+
+            $('#viewunhideimg').attr('src', steg.toDataURL());
+            $('#viewunhideimg').show();
+
+            $('#unhideloadingspan').text("Now right click and save the image");
+        }, 20);
+    }, 20);
 });
 
 function downloadCanvas(link, canvas, filename) {
