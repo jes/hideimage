@@ -133,7 +133,7 @@ $('#downloadbutton').click(function(e) {
             $('#viewimg').attr('src', cover.toDataURL());
             $('#viewimg').show();
 
-            $('#loadingspan').text("Now right click and save the image");
+            $('#loadingspan').html("Now right click and save the image.<br>Use the 'Unhide image' tool to retrieve the hidden image.");
         }, 20);
     }, 20);
 });
@@ -157,7 +157,7 @@ $('#downloadbutton2').click(function(e) {
         $('#viewimg').attr('src', stegdataurl);
         $('#viewimg').show();
 
-        $('#loadingspan').text("Now right click and save the image");
+        $('#loadingspan').text("Now right click and save the image.");
     }, 20);
 });
 
