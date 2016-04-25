@@ -23,7 +23,6 @@ $('#bits2').change(function(e) {
     makeUnhideImagePreview();
 });
 
-var pixpersec = 0;
 var changed = true;
 var unhidechanged = true;
 
@@ -60,10 +59,7 @@ $('#downloadbutton').click(function(e) {
 
         var coverdata = coverctx.getImageData(0, 0, cover.width, cover.height);
         var secretdata = secretctx.getImageData(0, 0, secret.width, secret.height);
-        var start = window.performance.now();
         doHideImage(coverdata, secretdata, $('#bits')[0].value);
-        var end = window.performance.now();
-        console.log("doHideImage took " + ((end - start) / 1000) + " secs");
 
         $('#loadingspan').text("Displaying...");
         setTimeout(function() {
@@ -121,7 +117,6 @@ function drawImagePreview(which, recursed) {
 
     // draw the image to the canvas
     ctx.clearRect(0, 0, targetw, targeth);
-    console.log("ctx.drawImage(" + which + ", " + (imgw/k) + ", " + (imgh/k) + "; k=" + k);
     ctx.drawImage(img, 0, 0, imgw / k, imgh / k);
 
     if (loaded_img[opposite[which]]) {
@@ -156,9 +151,6 @@ function makeHideImagePreview() {
     var secretdata = secretctx.getImageData(0, 0, loaded_img["secret"].width/k, loaded_img["secret"].height/k);
 
     doHideImage(coverdata, secretdata, $('#bits')[0].value);
-
-    var secs = 2 * (loaded_img["cover"].width * loaded_img["cover"].height) / pixpersec;
-    $('#loadingspan').text("Est. " + secs.toFixed(1)  + " seconds.");
 
     var outputctx = $('#outputcanvas')[0].getContext('2d');
     outputctx.putImageData(coverdata, 0, 0);
@@ -225,11 +217,7 @@ function doHideImage(coverdata, secretdata, bits) {
     if (secretdata.height < minh)
         minh = secretdata.height;
 
-    console.log("minw = " + minw); console.log("minh = " + minh);
-
     var mask = (0xff >>> bits) << bits;
-
-    var start = window.performance.now();
 
     for (var y = 0; y < minh; y++) {
         var covery = y*coverdata.width;
@@ -250,9 +238,6 @@ function doHideImage(coverdata, secretdata, bits) {
             coverpix[coveridx] = (coverpix[coveridx] & mask) + (secretpix[++secretidx] >>> (8 - bits));
         }
     }
-
-    var end = window.performance.now();
-    pixpersec = (minw * minh) / ((end - start) / 1000);
 }
 
 function doUnhideImage(stegdata, bits) {
@@ -267,9 +252,7 @@ function doUnhideImage(stegdata, bits) {
             var stegidx = 4*(stegy + x);
 
             // red
-            if(x==0 && y<6) console.log(stegpix[stegidx] + " ->");
             stegpix[stegidx] = (stegpix[stegidx] << (8 - bits)) & 0xff;
-            if(x==0 && y<6) console.log(" -> " + stegpix[stegidx]);
 
             // green
             ++stegidx;
