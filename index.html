@@ -20,7 +20,7 @@
             <hr>
 
             <p>This is a tool to steganographically hide images inside the lower "bits" of other images.</p>
-            <p>Select either "Hide image" or "Unhide image". Play with the <b>preset</b> images (all 200x200 px) to get a feel for it.</p>
+            <p>Select either "Hide image" or "Unhide image". Play with the <b>example</b> images (all 200x200 px) to get a feel for it.</p>
 
             <div class="modal" id="infomodal" tabindex="-1" role="dialog">
                 <div class="modal-dialog" role="document">
@@ -44,7 +44,7 @@
                             <p>Using a larger number of hidden bits results in a better quality hidden image, but makes it easier to tell that the hidden
                             image is there. Play with the 'hidden bits' slider to see.</p>
                             <p>There is an example on Wikipedia of a cat hidden in a picture of a tree. To do the example here, use the 'Unhide image' tool
-                            to select the 'Wikipedia tree' preset, and set hidden bits to 2.</p>
+                            to select the 'Wikipedia tree' example, and set hidden bits to 2.</p>
                             <p>Be careful with larger images as it can be quite slow.</p>
                         </div>
                         <div class="modal-footer">
@@ -68,7 +68,7 @@
                 <div class="col-md-4" style="padding-bottom: 40px">
                     <div style="height: 100px">
                         Cover image:<input type="file" id="cover"/><br>
-                        Preset:
+                        Example:
                         <select id="cover-preset">
                             <option value="na">N/A</option>
                             <option value="wikipedia-tree">Wikipedia Tree</option>
@@ -86,7 +86,7 @@
                 <div class="col-md-4" style="padding-bottom: 40px">
                     <div style="height: 100px">
                         Secret image:<input type="file" id="secret"/><br>
-                        Preset:
+                        Example:
                         <select id="secret-preset">
                             <option value="na">N/A</option>
                             <option value="wikipedia-tree">Wikipedia Tree</option>
@@ -117,7 +117,7 @@
                 <div class="col-md-4" style="padding-bottom: 40px">
                     <div style="height: 100px">
                         Image:<input type="file" id="stegimage"/><br>
-                        Preset:
+                        Example:
                         <select id="stegimage-preset">
                             <option value="na">N/A</option>
                             <option value="wikipedia-tree">Wikipedia Tree</option>
